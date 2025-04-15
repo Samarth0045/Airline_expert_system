@@ -96,20 +96,22 @@
                             <th scope="col">Destination</th>
                             <th scope="col">Departure</th>
                             <th scope="col">Arrival</th>
+                            <th scope="col">Distance</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for flight in flights %}
-                            <tr>
-                                <td>{{ flight.flight_number }}</td>
-                                <td>{{ flight.aircraft }}</td>
-                                <td>{{ flight.origin }}</td>
-                                <td>{{ flight.destination }}</td>
-                                <td>{{ flight.departure_time }}</td>
-                                <td>{{ flight.arrival_time }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
+    {% for flight in flights %}
+        <tr>
+            <td>{{ flight.flight_number }}</td>
+            <td>{{ flight.aircraft }}</td>
+            <td>{{ flight.origin }}</td>
+            <td>{{ flight.destination }}</td>
+            <td>{{ flight.departure_time }}</td>
+            <td>{{ flight.arrival_time }}</td>
+            <td>{{ flight.distance.distance_km }}</td>  <!-- Accessing the distance from the related Distance model -->
+        </tr>
+    {% endfor %}
+</tbody>
                 </table>
             </div>
         {% else %}

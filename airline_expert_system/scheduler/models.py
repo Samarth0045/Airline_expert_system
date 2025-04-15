@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import timedelta
 import uuid
 
 class Aircraft(models.Model):
@@ -16,6 +17,16 @@ class Flight(models.Model):
     destination = models.CharField(max_length=100)
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
+    distance = models.ForeignKey('Distance', on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        # Auto-calculate arrival_time if not set
+        if self.departure_time and self.distance:
+            avg_speed_kmph = 800  # Adjust based on realistic average
+            hours = self.distance.distance_km / avg_speed_kmph
+            flight_duration = timedelta(hours=hours)
+            self.arrival_time = self.departure_time + flight_duration
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.flight_number} - {self.origin} to {self.destination}"
@@ -37,3 +48,19 @@ class Cargo(models.Model):
             next_id = 1 if not last else last.id + 1
             self.cargo_id = f"C{next_id:03d}"
         super().save(*args, **kwargs)
+
+class Distance(models.Model):
+    origin = models.CharField(max_length=100)
+    destination = models.CharField(max_length=100)
+    distance_km = models.FloatField()
+    average_speed_kmph = models.FloatField(default=800)
+
+    def __str__(self):
+        return f"{self.origin} to {self.destination} - {self.distance_km} km"
+
+    def get_duration(self):
+        hours = self.distance_km / self.average_speed_kmph
+        return timedelta(hours=hours)
+
+    def get_estimated_arrival(self, departure_time):
+        return departure_time + self.get_duration()

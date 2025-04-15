@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Flight, Cargo
+from .models import Flight, Cargo,Distance
 from .forms import FlightForm, CargoForm
 from django.views.generic.edit import UpdateView, DeleteView
 from django.urls import reverse_lazy
@@ -20,8 +20,19 @@ def cargo_list(request):
 def add_flight(request):
     form = FlightForm(request.POST or None)
     if form.is_valid():
-        form.save()
+        flight = form.save(commit=False)
+
+        try:
+            # Try to find distance between origin and destination
+            distance_obj = Distance.objects.get(origin=flight.origin, destination=flight.destination)
+            flight.arrival_time = distance_obj.get_estimated_arrival(flight.departure_time)
+        except Distance.DoesNotExist:
+            # If distance is not defined, keep the manually entered arrival_time
+            pass
+
+        flight.save()
         return redirect('flight-list')
+
     return render(request, 'scheduler/add.html', {'form': form, 'title': 'Add Flight'})
 
 def add_cargo(request):
